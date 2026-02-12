@@ -1,11 +1,17 @@
-import startLogger from "./logger";
-import { GameManager  ,gameManager} from "./store";
+import express from 'express';
+
+const app = express();
+app.use(express.json());
 
 
 
-startLogger();
-setInterval(()=>{
-    gameManager.addGame(Math.random().toString())
-     
-} , 5000)
 
+
+
+
+
+
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
