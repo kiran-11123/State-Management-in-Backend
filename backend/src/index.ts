@@ -2,7 +2,7 @@ import express from 'express';
 import pubSubObject  from './PubSubmanager';
 const app = express();
 app.use(express.json());
-
+import { publisher } from './redis';
 
 const stockTicker :string[] = [];
 setInterval(()=>{
@@ -13,10 +13,14 @@ setInterval(()=>{
 
 } , 3000)
 
-setInterval(()=>{
+setInterval(async ()=>{
     
-    const stock = Math.random()*900000 + 100000; 
-    pubSubObject.forwardMessageToUsers(stockTicker[0] , "Hi there ")
+     if (stockTicker.length === 0) return;
+
+    const stock = stockTicker[0]; 
+    await publisher.publish(stock, "Hi there");
+
+    console.log("Published message to", stock);
 
 } , 3000)
 
