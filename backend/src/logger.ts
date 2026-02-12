@@ -1,10 +1,10 @@
-import {games} from './store'
+import { GameManager } from "./store";
 
 
 function startLogger(){
 setInterval(()=>{
    
-    console.log(games);
+ 
 } ,5000)
 }
 
