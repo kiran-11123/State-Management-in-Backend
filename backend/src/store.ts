@@ -38,6 +38,13 @@ export class GameManager{
          
     }
 
+    log(){
+        console.log(this.games);
+    }
+
    
      
 }
+
+
+export const gameManager=  new GameManager();

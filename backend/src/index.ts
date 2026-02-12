@@ -1,8 +1,7 @@
 import startLogger from "./logger";
-import { GameManager } from "./store";
+import { GameManager  ,gameManager} from "./store";
 
 
-const gameManager = new GameManager();
 
 startLogger();
 setInterval(()=>{
