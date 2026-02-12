@@ -1,38 +1,72 @@
-import redis_client from './redis';
-import { createClient , RedisClientPoolType, RedisClientType } from 'redis';
-
+import redisClients from "./redis";
+import { subscriber } from "./redis";
 
 export class PubSubManager{
 
     private static instance: PubSubManager;
-    private static redisClient: RedisClientType;
-    private static subscriptions: Map<string,string[]> ;
-
+    private  subscriptions: Map<string,Set<string>> = new Map();
     private constructor() {
-       this.redisClient = redis_client;
-       this.subscriptions = new Map<string,string[]>();
+
+     subscriber.on('message' , (channel , message)=>{
+          this.forwardMessageToUsers(channel, message);
+     })
+      
     }
 
     public static getInstance(): PubSubManager {
-        if (!PubSubManager.instance) {
-            PubSubManager.instance = new PubSubManager();
+        if (!this.instance) {
+            this.instance = new PubSubManager();
         }
-        return PubSubManager.instance;
+        return this.instance;
     }
 
-    addUserToStock(userID : string , stockTicker : string) {
+ async  addUserToStock(userID : string , stockTicker : string) {
         // Add the user to the stock's subscriber list in Redis
-        this.redisClient.sAdd(`stock:${stockTicker}:subscribers`, userID);
-
+         
+        if(!this.subscriptions.has(stockTicker)){
+             this.subscriptions.set(stockTicker , new Set());
+              await subscriber.subscribe(stockTicker);
+        } 
+        
+        this.subscriptions.get(stockTicker)?.add(userID);
+        
+        console.log(`user added into the Stock ${stockTicker}`)
+        
     }
-    removeUserFromStock(userID : string , stockTicker : string) {   
+    async removeUserFromStock(userID : string , stockTicker : string) {   
 
         // Remove the user from the stock's subscriber list in Redis
+         
+         const users = this.subscriptions.get(stockTicker);
+
+        if (!users) return;
+
+        users.delete(userID);
+
+        if(users.size ===0 ){
+             await subscriber.unsubscribe(stockTicker);
+             this.subscriptions.delete(stockTicker);
+        }
+        
 
     }
 
-    forwardMessageToUser(userID : string , stockTicker : string, message : string) {
+    async forwardMessageToUsers(stockTicker : string, message : string) {
         // Forward the message to the user through WebSocket or any other means 
-    
+        const users = this.subscriptions.get(stockTicker);
+
+        users?.forEach(user => {
+            console.log(`send ${message} to ${user}`);
+        }); 
+       
     }
+
+    
+
+
+
 }
+
+const pubSubObject = PubSubManager.getInstance();
+
+export default pubSubObject;

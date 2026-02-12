@@ -1,17 +1,35 @@
-import express from 'express'
-import redis from 'redis'
-import { createClient } from 'redis'
+import redis from 'ioredis'
+
+const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+
+const redis_client = new redis(REDIS_URL);
+
+export const publisher =  new redis(REDIS_URL);
+
+publisher.on('connect' , ()=>{
+     console.log("Publisher connected ")
+})
+
+publisher.on('error' , ()=>{
+     console.log("Error occured for publisher ")
+})
 
 
-const redis_client = createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
 
-});
+export const subscriber =  new redis(REDIS_URL);
+
+subscriber.on('connected ' , ()=>{
+     console.log("Subscriber connected")
+})
+
+subscriber.on('error' , ()=>{
+     console.log("Error occured for subscriber ")
+})
 
 
+const redisClients = {
+    publisher,
+    subscriber
+};
 
-redis_client.on('error', (err) => console.log('Redis Client Error', err));
-
- redis_client.connect();
-
-export default redis_client;
+export default redisClients;
